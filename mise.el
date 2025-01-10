@@ -191,7 +191,10 @@ command arguments to `mise'"
   (when-let* ((output (with-output-to-string
                         (mise--call standard-output "config" "ls" "--json")))
               (json-object-type 'hash-table))
-    (--map (expand-file-name (gethash "path" it)) (json-read-from-string output))))
+    (--map
+     (expand-file-name (gethash "path" it))
+     (ignore-error json-readtable-error
+       (json-read-from-string output)))))
 
 (defun mise--detect-dir ()
   "Return the mise closest config located directory for the current buffer."
