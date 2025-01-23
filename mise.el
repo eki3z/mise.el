@@ -4,7 +4,7 @@
 
 ;; Author: Eki Zhang <liuyinz95@gmail.com>
 ;; Maintainer: Eki Zhang <liuyinz95@gmail.com>
-;; Version: 0.3.0
+;; Version: 0.3.1
 ;; Package-Requires: ((emacs "29.1") (inheritenv "0.2") (dash "2.19.1"))
 ;; Keywords: tools, processes
 ;; Homepage: https://github.com/eki3z/mise.el
