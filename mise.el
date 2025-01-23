@@ -1,13 +1,13 @@
 ;;; mise.el --- Support for `mise' cli -*- lexical-binding: t -*-
 
-;; Copyright (C) 2024-2025 liuyinz
+;; Copyright (C) 2024-2025 Eki Zhang
 
-;; Author: liuyinz <liuyinz95@gmail.com>
-;; Maintainer: Liuyinz <liuyinz95@gmail.com>
+;; Author: Eki Zhang <liuyinz95@gmail.com>
+;; Maintainer: Eki Zhang <liuyinz95@gmail.com>
 ;; Version: 0.3.0
 ;; Package-Requires: ((emacs "29.1") (inheritenv "0.2") (dash "2.19.1"))
 ;; Keywords: tools, processes
-;; Homepage: https://github.com/liuyinz/mise.el
+;; Homepage: https://github.com/eki3z/mise.el
 
 ;; This file is not a part of GNU Emacs.
 
