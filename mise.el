@@ -5,7 +5,7 @@
 ;; Author: Eki Zhang <liuyinz95@gmail.com>
 ;; Maintainer: Eki Zhang <liuyinz95@gmail.com>
 ;; Version: 0.3.1
-;; Package-Requires: ((emacs "29.1") (inheritenv "0.2") (dash "2.19.1"))
+;; Package-Requires: ((emacs "29.1") (inheritenv "0.2") (llama "0.6.0"))
 ;; Keywords: tools, processes
 ;; Homepage: https://github.com/eki3z/mise.el
 
@@ -46,7 +46,7 @@
 (require 'json)
 
 (require 'inheritenv)
-(require 'dash)
+(require 'llama)
 
 (defgroup mise nil
   "Apply per-buffer environment variables using the mise tool."
@@ -191,7 +191,7 @@ command arguments to `mise'"
   (when-let* ((output (with-output-to-string
                         (mise--call standard-output "config" "ls" "--json")))
               (json-object-type 'hash-table))
-    (--map (expand-file-name (gethash "path" it)) (json-read-from-string output))))
+    (mapcar (##expand-file-name (gethash "path" %)) (json-read-from-string output))))
 
 (defun mise--detect-dir ()
   "Return the mise closest config located directory for the current buffer."
@@ -202,12 +202,12 @@ command arguments to `mise'"
   "Get a hash key for the result of invoking mise in ENV-DIR.
 Generate new key when mise configs files modified."
   (let* ((configs (mise--detect-configs))
-         (mdtime (--map (number-to-string
-                         (time-convert (file-attribute-modification-time
-                                        (file-attributes it))
-                                       'integer))
-                        configs)))
-    (concat env-dir "\0" (md5 (string-join (-concat configs mdtime))))))
+         (mdtime (mapcar (##number-to-string
+                          (time-convert (file-attribute-modification-time
+                                         (file-attributes %))
+                                        'integer))
+                         configs)))
+    (concat env-dir "\0" (md5 (string-join (append configs mdtime))))))
 
 (defun mise--merged-env (pairs)
   "Make a `process-environment' value that merges PROCESS-ENV with PAIRS.
@@ -215,10 +215,10 @@ PAIRS is an alist obtained from mise's output.
 Values from PROCESS-ENV will be included, but their values will
 be masked by Emacs' handling of `process-environment' if they
 also appear in PAIRS."
-  (-concat (--map (-let [(key . val) it]
+  (append (mapcar (##pcase-let* ((`(,key . ,val) %))
                     (concat key (and val (concat "=" val))))
                   pairs)
-           (plist-get mise--init-env :env)))
+          (plist-get mise--init-env :env)))
 
 (defun mise--update (&optional buffer)
   "Update the BUFFER or current buffer's environment if it is managed by mise.
@@ -245,14 +245,14 @@ environments updated."
                     (mise--merged-env
                      (or cache-value
                          (let ((new-val (mise--export env-dir)))
-                           (--each (hash-table-keys mise--cache)
-                             (and (string-prefix-p (concat env-dir "\0") it)
-                                  (remhash it mise--cache)))
+                           (mapc (##and (string-prefix-p (concat env-dir "\0") %)
+                                        (remhash % mise--cache))
+                                 (hash-table-keys mise--cache))
                            (puthash cache-key new-val mise--cache)
                            new-val))))
         (let ((path (getenv "PATH")))
-          (setq-local exec-path (-map #'directory-file-name
-                                      (remove nil (parse-colon-path path))))
+          (setq-local exec-path (mapcar #'directory-file-name
+                                        (remove nil (parse-colon-path path))))
           (when (derived-mode-p 'eshell-mode)
             (if (fboundp 'eshell-set-path)
                 (eshell-set-path path)
@@ -319,15 +319,15 @@ If BUF is nil, use current buffer instead."
 
 (defun mise--managed-buffers ()
   "Return a list of all live buffers in which `mise-mode' is enabled."
-  (--filter (and (buffer-live-p it)
-                 (buffer-local-value 'mise-mode it))
-            (buffer-list)))
+  (seq-filter (##and (buffer-live-p %)
+                     (buffer-local-value 'mise-mode %))
+              (buffer-list)))
 
 (defun mise-default-exclude ()
   "Return non-nil if current buffer should not obey `global-mise-mode'."
   (or (memq major-mode mise-exclude-modes)
       (when-let* ((lst mise-exclude-regexps))
-        (string-match-p (string-join (--map (concat "\\(?:" it "\\)") lst) "\\|")
+        (string-match-p (string-join (mapcar (##concat "\\(?:" % "\\)") lst) "\\|")
                         (buffer-name)))))
 
 
@@ -352,7 +352,7 @@ in a temp buffer.  ARGS is as for ORIG."
   (interactive
    (list (completing-read
           "Mise update buffer: "
-          (-map #'buffer-name (mise--managed-buffers)))))
+          (mapcar #'buffer-name (mise--managed-buffers)))))
   (mise--update buffer))
 
 (defun mise-update-dir (&optional all)
@@ -363,12 +363,12 @@ If optional argument ALL is non-nil, update all mise-managed buffers."
   (let ((buffers (or (and all (mise--managed-buffers))
                      (let ((dir (completing-read
                                  "Mise update dir: "
-                                 (--map (substring it 0 (- (length it) 33))
-                                        (hash-table-keys mise--cache)))))
-                       (--filter (with-current-buffer it
-                                   (string= (mise--detect-dir) dir))
-                                 (mise--managed-buffers))))))
-    (-each buffers #'mise--update)))
+                                 (mapcar (##substring % 0 (- (length %) 33))
+                                         (hash-table-keys mise--cache)))))
+                       (seq-filter (##with-current-buffer %
+                                     (string= (mise--detect-dir) dir))
+                                   (mise--managed-buffers))))))
+    (mapc #'mise--update buffers)))
 
 
 ;;; Minor mode
