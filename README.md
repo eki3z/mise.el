@@ -43,6 +43,15 @@ Clone and add to `load-path`, require the package.
 
 This package is available on [MELPA]. Install with `M-x package-install` `RET` `mise` within Emacs.
 
+- Doom Emacs
+
+Add the following in your `packages.el`
+
+```elisp
+(package! mise
+  :recipe (:host github :repo "eki3z/mise.el"))
+```
+
 ## Usage
 
 ```elisp
@@ -55,6 +64,14 @@ This package is available on [MELPA]. Install with `M-x package-install` `RET` `
 ;; or turn on in some buffer
 (add-hook 'emacs-lisp-mode-hook #'mise-mode)
 ```
+
+- Doom Emacs - Add the following configuration in your `config.el`
+
+```elisp
+(use-package! mise
+  :hook (after-init . global-mise-mode))
+```
+
 
 ## Customization
 
