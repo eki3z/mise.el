@@ -47,7 +47,7 @@ This package is available on [MELPA]. Install with `M-x package-install` `RET` `
 
 ```elisp
 ;; Directly
-(require mise)
+(require 'mise)
 
 ;; enable globally
 (add-hook 'after-init-hook #'global-mise-mode)
