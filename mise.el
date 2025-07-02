@@ -186,12 +186,50 @@ command arguments to `mise'"
             (throw 'unsure nil)))
         t))))
 
+(defun mise--extract-json (text)
+  "Extracts the proper JSON object or array string from TEXT.
+Searches for a line starting with `{` or `[` and finds the matching closing
+bracket, then returns the proper JSON as a string."
+  (let ((json-start-regexp "^[ \t]*\\([{\\[]\\)")
+        (start-pos nil)
+        (open-char nil)
+        (close-char nil)
+        (depth 0)
+        (end-pos nil))
+    (with-temp-buffer
+      (insert text)
+      (goto-char (point-min))
+
+      ;; Search for the first JSON opening token
+      (when (re-search-forward json-start-regexp nil t)
+        (setq start-pos (match-beginning 1))
+        (setq open-char (match-string 1))
+        (setq close-char (if (string= open-char "{") "}" "]"))
+        (goto-char start-pos)
+
+        ;; Traverse text to find matching closing token
+        (while (and (not end-pos) (not (eobp)))
+          (let ((char (char-after)))
+            (cond ((char-equal char (string-to-char open-char))
+                   (setq depth (1+ depth)))
+                  ((char-equal char (string-to-char close-char))
+                   (setq depth (1- depth))
+                   (when (zerop depth)
+                     (setq end-pos (point)))))
+            (forward-char 1)))
+
+        (unless (and start-pos end-pos)
+          (error (message "JSON string not found: %s" err) nil))
+
+        (buffer-substring-no-properties start-pos (1+ end-pos))))))
+
 (defun mise--detect-configs ()
   "Return a list of configs file path for mise in current directory."
   (when-let* ((output (with-output-to-string
                         (mise--call standard-output "config" "ls" "--json")))
+              (output-json (mise--extract-json output))  ;; Ignore non-json text, e.g. for warnings
               (json-object-type 'hash-table))
-    (mapcar (##expand-file-name (gethash "path" %)) (json-read-from-string output))))
+    (mapcar (##expand-file-name (gethash "path" %)) (json-read-from-string output-json))))
 
 (defun mise--detect-dir ()
   "Return the mise closest config located directory for the current buffer."
