@@ -31,7 +31,7 @@ Heavily inspired from [envrc][envrc] which created by Purcell.
 - Emacs, version >= 29.1
 - [inheirtenv](https://github.com/purcell/inheritenv)
 - [llama](https://github.com/tarsius/llama)
-- [mise][mise], version >= 2024.10.8
+- [mise][mise], version >= 2025.7.1
 
 ### package
 
@@ -67,17 +67,6 @@ This package is available on [MELPA]. Install with `M-x package-install` `RET` `
 ## Todo
 
 - [ ] support more options in `mise` cli
-
-## Donate
-
-If you think the it's helpful for you, please consider paying a cup of coffee
-for me. Thank you! :smile:
-
-<a href="https://paypal.me/liuyinz" target="_blank">
-<img
-src="https://www.paypalobjects.com/digitalassets/c/website/marketing/apac/C2/logos-buttons/optimize/44_Grey_PayPal_Pill_Button.png"
-alt="PayPal" width="120" />
-</a>
 
 [melpa]: http://melpa.org/#/git-cliff
 [mise]: https://mise.jdx.dev/
