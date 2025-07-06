@@ -72,6 +72,14 @@ if the current buffer should not obey `global-mise-mode.'"
           function)
   :group 'mise)
 
+(defcustom mise-trust 'ask
+  "Whether to trust detected mise config."
+  :type '(choice
+          (const :tag "Trust all" t)
+          (const :tag "Don't trust" nil)
+          (const :tag "Ask before trust" ask))
+  :group 'mise)
+
 (defcustom mise-auto-propagate-commands
   '(shell-command-to-string async-shell-command org-babel-eval)
   "A list of commands which run after propagating env in temp buffer."
@@ -135,7 +143,7 @@ MSG and ARGS are as for that function."
 (defun mise--message (&rest args)
   "Display a message for `mise' operation.
 ARGS is as same as `message'."
-  (message (concat "mise: " (apply #'format args))))
+  (message (concat "Mise: " (apply #'format args))))
 
 (defun mise--lighter ()
   "Return a colorized version of `mise--status' for use in the mode line."
@@ -167,23 +175,26 @@ command arguments to `mise'"
         (throw 'unsure nil))
       (let ((output1 (with-output-to-string
                        (mise--call standard-output "settings" "get" "experimental")))
-            ;; HACK output1 cannot detect mise untrust stderr output
             (output2 (with-output-to-string
-                       (mise--call standard-output "env"))))
+                       (mise--call standard-output "trust" "--show"))))
         ;; set experimental to true
         (unless (string-match-p "true" output1)
           (if (eq 0 (mise--call nil "settings" "set" "experimental" "true"))
               (mise--message "set experimental to true in global config")
-            (setq mise--status 'error)
             (mise--message "set experimental to true failed")
+            (setq mise--status 'error)
             (throw 'unsure nil)))
         ;; trust detected config
-        (when (string-match-p "Config file is not trusted" output2)
-          (if (eq 0 (mise--call nil "trust" "--all"))
-              (mise--message "trust detected configs.")
-            (setq-local mise--status 'untrust)
-            (mise--message "trust detected config failed")
-            (throw 'unsure nil)))
+        (when (string-match-p "untrusted$" output2)
+          (let* ((dir (car (string-split output2 ":")))
+                 (trust-p (or (eq mise-trust t)
+                              (and (eq mise-trust 'ask)
+                                   (eq (yes-or-no-p (format "Mise: trust dir %s? " dir)) t)))))
+            (if (and trust-p (eq 0 (mise--call nil "trust" "--all")))
+                (mise--message "trust detected config.")
+              (and trust-p (mise--message "trust detected config failed"))
+              (setq-local mise--status 'untrust)
+              (throw 'unsure nil))))
         t))))
 
 (defun mise--detect-configs ()
