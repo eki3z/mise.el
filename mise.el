@@ -215,7 +215,7 @@ Generate new key when mise configs files modified."
   (let* ((configs (mise--detect-configs))
          (mdtime (mapcar (##number-to-string
                           (time-convert (file-attribute-modification-time
-                                         (file-attributes %))
+                                         (file-attributes (file-truename %)))
                                         'integer))
                          configs)))
     (concat env-dir "\0" (md5 (string-join (append configs mdtime))))))
