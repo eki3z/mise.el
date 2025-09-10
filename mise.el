@@ -202,6 +202,13 @@ command arguments to `mise'"
   (when-let* ((output (with-output-to-string
                         (mise--call standard-output "config" "ls" "--json")))
               (json-object-type 'hash-table))
+    (unless (string-prefix-p "[" (string-trim output))
+      (with-temp-buffer
+        (insert str)
+        (goto-char (point-max))
+        (when (re-search-backward "^\\[" nil t)
+          (forward-line 0)  ; ensure at BOL
+          (setq output (buffer-substring-no-properties (point) (point-max))))))
     (mapcar (##expand-file-name (gethash "path" %)) (json-read-from-string output))))
 
 (defun mise--detect-dir ()
