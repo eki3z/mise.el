@@ -30,7 +30,6 @@ Heavily inspired from [envrc][envrc] which created by Purcell.
 
 - Emacs, version >= 29.1
 - [inheirtenv](https://github.com/purcell/inheritenv)
-- [llama](https://github.com/tarsius/llama)
 - [mise][mise], version >= 2025.7.1
 
 ### package
