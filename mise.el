@@ -203,7 +203,7 @@ command arguments to `mise'"
               (json-object-type 'hash-table))
     (unless (string-prefix-p "[" (string-trim output))
       (with-temp-buffer
-        (insert str)
+        (insert output)
         (goto-char (point-max))
         (when (re-search-backward "^\\[" nil t)
           (forward-line 0)  ; ensure at BOL
